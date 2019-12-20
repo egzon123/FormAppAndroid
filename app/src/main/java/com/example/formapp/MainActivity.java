@@ -17,6 +17,7 @@ import android.widget.Toast;
 import java.util.Calendar;
 import java.util.regex.Pattern;
 
+//coment add
 public class MainActivity extends AppCompatActivity {
 
     EditText emri,mbiemri,email,password,confirm_password;
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     int yearD;
     int monthD;
     int dayOfMonthD;
+
 
 
     Calendar calendar;

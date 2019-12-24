@@ -11,6 +11,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
@@ -61,13 +63,14 @@ public class LoginActivity extends AppCompatActivity {
     private boolean validateUserCredentials(String email,String password){
         pref = getApplicationContext().getSharedPreferences("userData", MODE_PRIVATE);
         Map<String, ?> prefsMap = pref.getAll();
+        User user = null;
         for (Map.Entry<String, ?> entry: prefsMap.entrySet()) {
            String userDetails = entry.getValue().toString();
-           if(userDetails.contains(email) && userDetails.contains(password)){
-               return true;
-           }else{
-               continue;
-           }
+            Gson g = new Gson();
+            user = g.fromJson(userDetails, User.class);
+          if(user.getEmail().equals(email) && user.getPassword().equals(password)){
+              return true;
+          }
         }
         return false;
     }

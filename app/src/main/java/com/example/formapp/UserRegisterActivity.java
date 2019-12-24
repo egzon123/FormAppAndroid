@@ -64,36 +64,19 @@ public class UserRegisterActivity extends AppCompatActivity {
 
         radioSexGroup = (RadioGroup) findViewById(R.id.radioSex);
 
+        selectDateFromDialog(selectDate);
 
-        selectDate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                calendar = Calendar.getInstance();
-                yearD = calendar.get(Calendar.YEAR);
-                monthD = calendar.get(Calendar.MONTH);
-                dayOfMonthD = calendar.get(Calendar.DAY_OF_MONTH);
-                datePickerDialog = new DatePickerDialog(UserRegisterActivity.this,
-                        new DatePickerDialog.OnDateSetListener() {
-                            @Override
-                            public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                                date.setText(day + "/" + (month + 1) + "/" + year);
-                                setYearD(year);
-                                setMonthD(month+1);
-                                setDayOfMonthD(day);
-                            }
-                        }, yearD, monthD, monthD);
+        btnRegister.setOnClickListener((View view)-> {
 
-                datePickerDialog.show();
-            }
-        });
-
-        btnRegister.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(!isValidEmail(email.getText().toString())){
+                if(isUserNameOrSurnameEmpty(emri.getText().toString().trim(),mbiemri.getText().toString().trim())){
+                    Toast.makeText(UserRegisterActivity.this, "Name or Surname is Empty", Toast.LENGTH_SHORT).show();
+                }else if(!isValidEmail(email.getText().toString())){
                     Toast.makeText(UserRegisterActivity.this,"Please enter valid email format",Toast.LENGTH_SHORT).show();
                 }else if(!matchPws(password.getText().toString(),confirm_password.getText().toString())){
                     Toast.makeText(UserRegisterActivity.this,"Passwords dont match",Toast.LENGTH_SHORT).show();
+                }else if (date.getText().toString().isEmpty()){
+                    Toast.makeText(UserRegisterActivity.this, "Please select a birthdate", Toast.LENGTH_SHORT).show();
+
                 }else{
                     int selectedId = radioSexGroup.getCheckedRadioButtonId();
 
@@ -124,7 +107,32 @@ public class UserRegisterActivity extends AppCompatActivity {
 
 
                 }
-            }
+
+        });
+
+    }
+
+    public void selectDateFromDialog(Button selectDate){
+        selectDate.setOnClickListener((View view)-> {
+
+                calendar = Calendar.getInstance();
+                yearD = calendar.get(Calendar.YEAR);
+                monthD = calendar.get(Calendar.MONTH);
+                dayOfMonthD = calendar.get(Calendar.DAY_OF_MONTH);
+
+                datePickerDialog = new DatePickerDialog(UserRegisterActivity.this,
+                        new DatePickerDialog.OnDateSetListener() {
+                            @Override
+                            public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+                                date.setText(day + "/" + (month + 1) + "/" + year);
+                                setYearD(year);
+                                setMonthD(month+1);
+                                setDayOfMonthD(day);
+                            }
+                        }, yearD, monthD, monthD);
+                datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+                datePickerDialog.show();
+
         });
 
     }
@@ -156,11 +164,13 @@ public class UserRegisterActivity extends AppCompatActivity {
             String userDetails = entry.getValue().toString();
             if(userDetails.contains(email)){
                 return true;
-            }else{
-                continue;
             }
         }
         return false;
+    }
+
+    private boolean isUserNameOrSurnameEmpty(String name,String password){
+        return name.isEmpty() || password.isEmpty();
     }
 
 
@@ -172,7 +182,12 @@ public class UserRegisterActivity extends AppCompatActivity {
     }
 
     private boolean matchPws(String p1,String p2){
-        return p1.equals(p2);
+      if(p1.trim().isEmpty() && p2.trim().isEmpty()){
+          return false;
+      }else if(p1.equals(p2)){
+          return true;
+      }
+      return false;
     }
 
 

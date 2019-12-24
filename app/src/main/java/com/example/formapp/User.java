@@ -3,16 +3,23 @@ package com.example.formapp;
 import java.util.Date;
 
 public class User {
-    private int id;
+    private String id;
     private String name;
     private String surname;
     private String email;
-    private Date birthdate;
     private String password;
-    private char gender;
+    private String birthdate;
+    private String gender;
 
-    public User(){
 
+    public User(String id, String name, String surname, String email, String password, String gender, String birthdate) {
+        this.id = id;
+        this.name = name;
+        this.surname = surname;
+        this.email = email;
+        this.password = password;
+        this.birthdate = birthdate;
+        this.gender = gender;
     }
 
     public String getName() {
@@ -39,19 +46,19 @@ public class User {
         this.email = email;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public Date getBirthdate() {
+    public String getBirthdate() {
         return birthdate;
     }
 
-    public void setBirthdate(Date birthdate) {
+    public void setBirthdate(String birthdate) {
         this.birthdate = birthdate;
     }
 
@@ -63,11 +70,11 @@ public class User {
         this.password = password;
     }
 
-    public char getGender() {
+    public String getGender() {
         return gender;
     }
 
-    public void setGender(char gender) {
+    public void setGender(String gender) {
         this.gender = gender;
     }
 

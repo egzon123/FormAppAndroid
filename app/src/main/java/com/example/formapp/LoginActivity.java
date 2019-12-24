@@ -62,7 +62,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private boolean validateUserCredentials(String email,String password){
         pref = getApplicationContext().getSharedPreferences("userData", MODE_PRIVATE);
-        Map<String, ?> prefsMap = pref.getAll();
+        Map<String, ?   > prefsMap = pref.getAll();
         User user = null;
         for (Map.Entry<String, ?> entry: prefsMap.entrySet()) {
            String userDetails = entry.getValue().toString();

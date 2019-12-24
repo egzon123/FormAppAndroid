@@ -114,7 +114,6 @@ public class UserRegisterActivity extends AppCompatActivity {
 
     public void selectDateFromDialog(Button selectDate){
         selectDate.setOnClickListener((View view)-> {
-
                 calendar = Calendar.getInstance();
                 yearD = calendar.get(Calendar.YEAR);
                 monthD = calendar.get(Calendar.MONTH);
@@ -132,7 +131,6 @@ public class UserRegisterActivity extends AppCompatActivity {
                         }, yearD, monthD, monthD);
                 datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
                 datePickerDialog.show();
-
         });
 
     }

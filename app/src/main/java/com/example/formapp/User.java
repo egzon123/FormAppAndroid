@@ -10,7 +10,9 @@ public class User {
     private String password;
     private String birthdate;
     private String gender;
+public User(){
 
+}
 
     public User(String id, String name, String surname, String email, String password, String gender, String birthdate) {
         this.id = id;

@@ -42,9 +42,9 @@ public class SqliteHelper extends SQLiteOpenHelper {
             + " ( "
             + KEY_ID + " INTEGER PRIMARY KEY, "
             + KEY_NAME + " TEXT, "
+            + KEY_SURNAME + " TEXT,"
             + KEY_EMAIL + " TEXT, "
             + KEY_PASSWORD + " TEXT,"
-            + KEY_SURNAME + " TEXT,"
             + KEY_GENDER + " TEXT,"
             + KEY_BIRTHDATE + " TEXT"
             + " ) ";
@@ -76,7 +76,7 @@ public class SqliteHelper extends SQLiteOpenHelper {
         //create content values to insert
         ContentValues values = new ContentValues();
 
-        //Put username in  @values
+
         values.put(KEY_NAME, user.getName());
         values.put(KEY_SURNAME, user.getSurname());
         values.put(KEY_EMAIL, user.getEmail());
@@ -90,7 +90,7 @@ public class SqliteHelper extends SQLiteOpenHelper {
         long todo_id = db.insert(TABLE_USERS, null, values);
     }
 
-    public User Authenticate(User user) {
+    public User authenticate(User user) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_USERS,// Selecting Table
                 new String[]{KEY_ID, KEY_NAME, KEY_SURNAME, KEY_EMAIL, KEY_PASSWORD, KEY_GENDER, KEY_BIRTHDATE},//Selecting columns want to query
@@ -127,5 +127,41 @@ public class SqliteHelper extends SQLiteOpenHelper {
 
         //if email does not exist return false
         return false;
+    }
+
+    public User retriveUserByEmail(String email){
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS,// Selecting Table
+                new String[]{KEY_ID, KEY_NAME, KEY_SURNAME, KEY_EMAIL, KEY_PASSWORD, KEY_GENDER, KEY_BIRTHDATE},//Selecting columns want to query
+                KEY_EMAIL + "=?",
+                new String[]{email},//Where clause
+                null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()&& cursor.getCount()>0) {
+            //if cursor has value then in user database there is user associated with this given email
+            User user = new User(cursor.getString(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5), cursor.getString(6));
+
+           return user;
+        }
+
+        //if user password does not matches or there is no record with that email then return @false
+        return null;
+    }
+
+    public void printData(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS,// Selecting Table
+                new String[]{KEY_ID, KEY_NAME, KEY_SURNAME, KEY_EMAIL, KEY_PASSWORD, KEY_GENDER, KEY_BIRTHDATE},//Selecting columns want to query
+              null,null,
+                null, null, null);
+        System.out.println("Cursor ->  "+cursor.toString());
+        if (cursor.moveToFirst()){
+            do{
+                User user = new User(cursor.getString(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5), cursor.getString(6));
+                System.out.println("User data =>"+user);
+                // do what ever you want here
+            }while(cursor.moveToNext());
+        }
+        cursor.close();
     }
 }

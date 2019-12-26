@@ -6,6 +6,7 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
@@ -17,6 +18,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 
 import java.text.ParseException;
@@ -39,8 +41,9 @@ public class UserRegisterActivity extends AppCompatActivity {
     int yearD;
     int monthD;
     int dayOfMonthD;
-    SharedPreferences pref;
-    SharedPreferences.Editor prefsEditor;
+    SqliteHelper sqliteHelper;
+//    SharedPreferences pref;
+//    SharedPreferences.Editor prefsEditor;
 
 
     Calendar calendar;
@@ -52,62 +55,39 @@ public class UserRegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.user_register);
         this.getSupportActionBar().setTitle("Register");
-        emri=  findViewById(R.id.etEmri);
-        mbiemri = findViewById(R.id.etMbiemri);
-        email = findViewById(R.id.etEmail);
-        password = findViewById(R.id.password);
-        confirm_password = findViewById(R.id.confirmPassword);
-        selectDate = findViewById(R.id.btnDate);
-        date = findViewById(R.id.tvSelectedDate);
-        btnRegister = findViewById(R.id.btnRegister);
-
-
-        radioSexGroup = (RadioGroup) findViewById(R.id.radioSex);
+        sqliteHelper = new SqliteHelper(this);
+        initView();
 
         selectDateFromDialog(selectDate);
 
         btnRegister.setOnClickListener((View view)-> {
 
-                if(isUserNameOrSurnameEmpty(emri.getText().toString().trim(),mbiemri.getText().toString().trim())){
-                    Toast.makeText(UserRegisterActivity.this, "Name or Surname is Empty", Toast.LENGTH_SHORT).show();
-                }else if(!isValidEmail(email.getText().toString())){
-                    Toast.makeText(UserRegisterActivity.this,"Please enter valid email format",Toast.LENGTH_SHORT).show();
-                }else if(!matchPws(password.getText().toString(),confirm_password.getText().toString())){
-                    Toast.makeText(UserRegisterActivity.this,"Passwords dont match",Toast.LENGTH_SHORT).show();
-                }else if (date.getText().toString().isEmpty()){
-                    Toast.makeText(UserRegisterActivity.this, "Please select a birthdate", Toast.LENGTH_SHORT).show();
-
-                }else{
+                if(validate()){
                     int selectedId = radioSexGroup.getCheckedRadioButtonId();
 
                     // find the radiobutton by returned id
                     radioSexButton = (RadioButton) findViewById(selectedId);
-                    System.out.println("Registred :  emri: "+emri.getText().toString()+", mbiemri: "+mbiemri.getText().toString()+" ,email: "+email.getText().toString()+", birthday: "+getYearD()+"\\"+getMonthD()+"\\"+getDayOfMonthD()+
-                            ", gender:"+ radioSexButton.getText()  +" password: "+password.getText().toString()+" ,confirmpsw: "+confirm_password.getText().toString());
+                   if(!sqliteHelper.isEmailExists(email.getText().toString())){
+                           String birthdateText = getDayOfMonthD()+"/"+getMonthD()+"/"+getYearD();
+                           User user = new User();
+                           user.setId(null);
+                           user.setName(emri.getText().toString());
+                           user.setSurname(mbiemri.getText().toString());
+                           user.setEmail(email.getText().toString());
+                           user.setPassword(password.getText().toString());
+                           user.setGender(radioSexButton.getText().toString());
+                           user.setBirthdate(birthdateText);
+                           sqliteHelper.addUser(user);
 
-                    User user= new User();
-                    user.setName(emri.getText().toString());
-                    user.setSurname(mbiemri.getText().toString());
-                    user.setEmail(email.getText().toString());
-                    String bD = getDayOfMonthD()+"/"+getMonthD()+"/"+getYearD();
-                    Date date = null;
-                    try {
-                        date=new SimpleDateFormat("dd/MM/yyyy").parse(bD);
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                    user.setBirthdate(date);
-                    user.setGender(radioSexButton.getText().charAt(0));
-                    user.setPassword(password.getText().toString());
-                    if(ifEmailExists(email.getText().toString())){
-                        Toast.makeText(UserRegisterActivity.this, "Email Exists", Toast.LENGTH_SHORT).show();
-                    }else{
-                        userRegisterSharedP(user);
-                    }
+                       Toast.makeText(this, "User created successfuly please Login", Toast.LENGTH_SHORT).show();
+                       Intent intent = new Intent(UserRegisterActivity.this,LoginActivity.class);
+                       startActivity(intent);
 
+                   }else{
+                       Snackbar.make(btnRegister, "User already exists with same email ", Snackbar.LENGTH_LONG).show();
+                   }
 
                 }
-
         });
 
     }
@@ -135,37 +115,71 @@ public class UserRegisterActivity extends AppCompatActivity {
 
     }
 
-    private void userRegisterSharedP(User user){
-         pref = getApplicationContext().getSharedPreferences("userData", MODE_PRIVATE);
+    private void initView(){
+        emri=  findViewById(R.id.etEmri);
+        mbiemri = findViewById(R.id.etMbiemri);
+        email = findViewById(R.id.etEmail);
+        password = findViewById(R.id.password);
+        confirm_password = findViewById(R.id.confirmPassword);
+        selectDate = findViewById(R.id.btnDate);
+        date = findViewById(R.id.tvSelectedDate);
+        btnRegister = findViewById(R.id.btnRegister);
 
-         prefsEditor = pref.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(user);
-        String uniqueID = UUID.randomUUID().toString();
-        prefsEditor.putString(uniqueID, json);
-        boolean isRegistredSuccessful = prefsEditor.commit();
-        if(isRegistredSuccessful){
-            Toast.makeText(this, "Registred Successfuly", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(UserRegisterActivity.this,LoginActivity.class);
-            startActivity(intent);
 
+        radioSexGroup = (RadioGroup) findViewById(R.id.radioSex);
+    }
+
+    private boolean validate(){
+        if(isUserNameOrSurnameEmpty(emri.getText().toString().trim(),mbiemri.getText().toString().trim())){
+            Toast.makeText(UserRegisterActivity.this, "Name or Surname is Empty", Toast.LENGTH_SHORT).show();
+            return false;
+        }else if(!isValidEmail(email.getText().toString())){
+            Toast.makeText(UserRegisterActivity.this,"Please enter valid email ",Toast.LENGTH_SHORT).show();
+            return false;
+        }else if (date.getText().toString().isEmpty()){
+            Toast.makeText(UserRegisterActivity.this, "Please select a birthdate", Toast.LENGTH_SHORT).show();
+            return false;
+
+        }else if(!matchPws(password.getText().toString(),confirm_password.getText().toString())){
+            Toast.makeText(UserRegisterActivity.this,"Passwords dont match",Toast.LENGTH_SHORT).show();
+            return false;
         }else{
-            Toast.makeText(this, "Not Registerd", Toast.LENGTH_SHORT).show();
+            return true;
         }
 
     }
 
-    private boolean ifEmailExists(String email){
-        pref = getApplicationContext().getSharedPreferences("userData", MODE_PRIVATE);
-        Map<String, ?> prefsMap = pref.getAll();
-        for (Map.Entry<String, ?> entry: prefsMap.entrySet()) {
-            String userDetails = entry.getValue().toString();
-            if(userDetails.contains(email)){
-                return true;
-            }
-        }
-        return false;
-    }
+//    private void userRegisterSharedP(User user){
+//         pref = getApplicationContext().getSharedPreferences("userData", MODE_PRIVATE);
+//
+//         prefsEditor = pref.edit();
+//        Gson gson = new Gson();
+//        String json = gson.toJson(user);
+//        String uniqueID = UUID.randomUUID().toString();
+//        prefsEditor.putString(uniqueID, json);
+//        boolean isRegistredSuccessful = prefsEditor.commit();
+//        if(isRegistredSuccessful){
+//            Toast.makeText(this, "Registred Successfuly", Toast.LENGTH_SHORT).show();
+//            Intent intent = new Intent(UserRegisterActivity.this,LoginActivity.class);
+//            startActivity(intent);
+//
+//        }else{
+//            Toast.makeText(this, "Not Registerd", Toast.LENGTH_SHORT).show();
+//        }
+//
+//    }
+//
+//    private boolean ifEmailExists(String email){
+//        pref = getApplicationContext().getSharedPreferences("userData", MODE_PRIVATE);
+//        Map<String, ?> prefsMap = pref.getAll();
+//        for (Map.Entry<String, ?> entry: prefsMap.entrySet()) {
+//            String userDetails = entry.getValue().toString();
+//            if(userDetails.contains(email)){
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 
     private boolean isUserNameOrSurnameEmpty(String name,String password){
         return name.isEmpty() || password.isEmpty();
